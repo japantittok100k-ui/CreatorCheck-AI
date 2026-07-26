@@ -5,16 +5,16 @@ const server = http.createServer((req, res) => {
   // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "*");
 
-  // OPTIONS
+  // Preflight
   if (req.method === "OPTIONS") {
     res.writeHead(204);
     res.end();
     return;
   }
 
-  // Health Check
+  // Backend Health Check
   if (req.method === "GET" && req.url === "/") {
 
     res.writeHead(200, {
@@ -29,7 +29,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // AI Analyze API
+  // Analyze API
   if (req.method === "POST" && req.url === "/analyze") {
 
     let body = "";
@@ -38,160 +38,31 @@ const server = http.createServer((req, res) => {
       body += chunk.toString();
     });
 
-    req.on("end", async () => {
+    req.on("end", () => {
 
-      try {
+      console.log("Analyze request received");
 
-        // Frontend က ပို့လာတဲ့ Data
-        let videoLink = "";
+      const result = {
+        success: true,
 
-        try {
-          const params = new URLSearchParams(body);
-          videoLink = params.get("videoLink") || "";
-        } catch (e) {
-          videoLink = "";
-        }
+        monetization:
+          "အလယ်အလတ်အန္တရာယ်ရှိနိုင်ပါသည်။ မူရင်းအကြောင်းအရာနှင့် ကိုယ်ပိုင် Commentary ပိုမိုထည့်သွင်းရန် အကြံပြုပါသည်။",
 
-        // OpenAI API Key
-        const apiKey = process.env.OPENAI_API_KEY;
+        copyright:
+          "မူပိုင်ခွင့်နှင့်ပတ်သက်သော စိုးရိမ်စရာအချက်အချို့ ရှိနိုင်ပါသည်။ အသုံးပြုခွင့်နှင့် ပိုင်ဆိုင်ခွင့်များကို ထပ်မံစစ်ဆေးပါ။",
 
-        // API Key မရှိရင်
-        if (!apiKey) {
+        reusedContent:
+          "Reused Content ဖြစ်နိုင်ခြေကို တိတိကျကျစစ်ဆေးရန် Video Content ကို အမှန်တကယ်ခွဲခြမ်းစိတ်ဖြာရန် လိုအပ်ပါသည်။",
 
-          res.writeHead(500, {
-            "Content-Type": "application/json; charset=utf-8"
-          });
+        recommendation:
+          "ကိုယ်ပိုင် Voice-over၊ Commentary၊ Analysis၊ Editing နှင့် Storytelling များ ထည့်သွင်းပြီး မူရင်းတန်ဖိုးရှိသော Content အဖြစ် ဖန်တီးရန် အကြံပြုပါသည်။"
+      };
 
-          res.end(JSON.stringify({
-            success: false,
-            message: "OPENAI_API_KEY မတွေ့ပါ။ Railway Variables ကို စစ်ဆေးပါ။"
-          }));
+      res.writeHead(200, {
+        "Content-Type": "application/json; charset=utf-8"
+      });
 
-          return;
-        }
-
-        // AI ကို ပို့မယ့် Prompt
-        const prompt = `
-You are CreatorCheck AI.
-
-Analyze this creator video link:
-
-${videoLink || "No video link provided"}
-
-Give a cautious risk assessment for:
-1. Monetization potential
-2. Copyright risk
-3. Reused content risk
-4. Originality
-5. Recommendations for editing
-
-Important:
-- Do not claim certainty.
-- Do not claim that copyright is legally cleared.
-- Do not guarantee monetization approval.
-- Clearly say this is an AI risk assessment.
-
-Return JSON only in this format:
-
-{
-  "monetization": "...",
-  "copyright": "...",
-  "reusedContent": "...",
-  "originality": "...",
-  "recommendation": "..."
-}
-`;
-
-        // OpenAI API Request
-        const response = await fetch(
-          "https://api.openai.com/v1/responses",
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${apiKey}`
-            },
-
-            body: JSON.stringify({
-              model: "gpt-4.1-mini",
-              input: prompt
-            })
-          }
-        );
-
-        if (!response.ok) {
-
-          const errorText = await response.text();
-
-          console.error("OpenAI Error:", errorText);
-
-          res.writeHead(500, {
-            "Content-Type": "application/json; charset=utf-8"
-          });
-
-          res.end(JSON.stringify({
-            success: false,
-            message: "AI Server Error ဖြစ်နေပါသည်။"
-          }));
-
-          return;
-        }
-
-        const data = await response.json();
-
-        // AI Text ရယူခြင်း
-        const aiText =
-          data.output_text ||
-          "AI ရလဒ် မရရှိသေးပါ။";
-
-        // JSON ပြန်ဖတ်ရန်
-        let aiResult;
-
-        try {
-
-          aiResult = JSON.parse(aiText);
-
-        } catch (e) {
-
-          aiResult = {
-            monetization: aiText,
-            copyright: "AI မှ အသေးစိတ် Copyright Risk မရရှိသေးပါ။",
-            reusedContent: "AI မှ Reused Content Risk မရရှိသေးပါ။",
-            originality: "AI မှ Originality Analysis မရရှိသေးပါ။",
-            recommendation: "ကိုယ်ပိုင် Commentary၊ Voice-over နှင့် Editing ထည့်သွင်းရန် အကြံပြုပါသည်။"
-          };
-
-        }
-
-        // Frontend ကို Result ပြန်ပို့
-        res.writeHead(200, {
-          "Content-Type": "application/json; charset=utf-8"
-        });
-
-        res.end(JSON.stringify({
-          success: true,
-          monetization: aiResult.monetization,
-          copyright: aiResult.copyright,
-          reusedContent: aiResult.reusedContent,
-          originality: aiResult.originality,
-          recommendation: aiResult.recommendation
-        }));
-
-      } catch (error) {
-
-        console.error(error);
-
-        res.writeHead(500, {
-          "Content-Type": "application/json; charset=utf-8"
-        });
-
-        res.end(JSON.stringify({
-          success: false,
-          message: "AI Analysis ပြုလုပ်ရာတွင် အမှားတစ်ခု ဖြစ်ပေါ်ခဲ့ပါသည်။"
-        }));
-
-      }
+      res.end(JSON.stringify(result));
 
     });
 
@@ -210,8 +81,6 @@ Return JSON only in this format:
 
 });
 
-
-// Railway PORT
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, "0.0.0.0", () => {
