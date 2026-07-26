@@ -1,0 +1,752 @@
+<!DOCTYPE html><html lang="my">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  <title>CreatorCheck AI</title>  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, "Noto Sans Myanmar", sans-serif;
+    }
+
+    body {
+      background: #0f1117;
+      color: white;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .header {
+      text-align: center;
+      padding: 35px 10px;
+    }
+
+    .logo {
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #aeb4c0;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .card {
+      background: #181b24;
+      padding: 22px;
+      border-radius: 18px;
+      margin-bottom: 20px;
+      border: 1px solid #292d38;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .card-title {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    .input-section {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 9px;
+      color: #c8ccd5;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    input[type="url"] {
+      width: 100%;
+      padding: 15px;
+      border-radius: 11px;
+      border: 1px solid #363b48;
+      background: #101219;
+      color: white;
+      outline: none;
+      font-size: 15px;
+    }
+
+    input[type="url"]:focus {
+      border-color: #6c5ce7;
+      box-shadow: 0 0 0 3px rgba(108,92,231,0.15);
+    }
+
+    .upload-box {
+      border: 2px dashed #363b48;
+      background: #101219;
+      border-radius: 14px;
+      padding: 25px 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .upload-box:hover {
+      border-color: #6c5ce7;
+      background: #131620;
+    }
+
+    .upload-icon {
+      font-size: 35px;
+      margin-bottom: 8px;
+    }
+
+    .upload-text {
+      color: #c8ccd5;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    .upload-hint {
+      color: #777d89;
+      font-size: 12px;
+    }
+
+    #videoFile {
+      display: none;
+    }
+
+    #fileName {
+      margin-top: 12px;
+      color: #aeb4c0;
+      font-size: 13px;
+      word-break: break-word;
+    }
+
+    .analyze-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 11px;
+      background: #6c5ce7;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .analyze-btn:hover {
+      background: #5b4bd6;
+    }
+
+    .analyze-btn:active {
+      transform: scale(0.98);
+    }
+
+    .analyze-btn:disabled {
+      background: #454052;
+      cursor: not-allowed;
+    }
+
+    /* Loading */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 25px 10px;
+    }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 4px solid #363b48;
+      border-top: 4px solid #6c5ce7;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-text {
+      color: #c8ccd5;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    #result {
+      display: none;
+    }
+
+    .result-header {
+      margin-bottom: 18px;
+    }
+
+    .result-header h2 {
+      margin-bottom: 7px;
+    }
+
+    .result-header p {
+      color: #777d89;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .result-box {
+      background: #101219;
+      padding: 17px;
+      border-radius: 12px;
+      margin-top: 12px;
+      border-left: 4px solid #6c5ce7;
+    }
+
+    .result-box h3 {
+      margin-bottom: 9px;
+      font-size: 16px;
+    }
+
+    .score {
+      font-size: 25px;
+      font-weight: bold;
+      margin-bottom: 7px;
+    }
+
+    .result-box p {
+      color: #c8ccd5;
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .notice {
+      border-left-color: #ffd166;
+    }
+
+    .footer {
+      text-align: center;
+      color: #777d89;
+      font-size: 12px;
+      padding: 20px;
+    }
+  </style></head><body>  <div class="container"><!-- ခေါင်းစဉ် -->
+<div class="header">
+
+  <div class="logo">🎬</div>
+
+  <h1>CreatorCheck AI</h1>
+
+  <p>
+    သင့်ဗီဒီယိုကို ငွေရှာနိုင်ခြေ၊
+    မူပိုင်ခွင့်နှင့် မူရင်းအကြောင်းအရာ
+    အန္တရာယ်များအတွက် စစ်ဆေးပါ။
+  </p>
+
+</div>
+
+
+<!-- ဗီဒီယိုစစ်ဆေးရန် -->
+<div class="card">
+
+  <h2 class="card-title">
+    🔍 သင့်ဗီဒီယိုကို စစ်ဆေးပါ
+  </h2>
+
+
+  <!-- Video Link -->
+  <div class="input-section">
+
+    <label>
+      🔗 ဗီဒီယိုလင့်ခ်
+    </label>
+
+    <input
+      type="url"
+      id="videoLink"
+      placeholder="YouTube သို့မဟုတ် TikTok ဗီဒီယိုလင့်ခ် ထည့်ပါ..."
+    >
+
+  </div>
+
+
+  <!-- Upload -->
+  <div class="input-section">
+
+    <label>
+      📹 ဗီဒီယိုဖိုင်တင်ရန်
+    </label>
+
+    <label for="videoFile" class="upload-box">
+
+      <div class="upload-icon">
+        ☁️
+      </div>
+
+      <div class="upload-text">
+        ဗီဒီယိုဖိုင်ရွေးရန် နှိပ်ပါ
+      </div>
+
+      <div class="upload-hint">
+        MP4, MOV, AVI နှင့် အခြားဗီဒီယိုဖိုင်များ
+      </div>
+
+      <div id="fileName">
+        ဗီဒီယိုဖိုင် ရွေးချယ်ထားခြင်းမရှိသေးပါ
+      </div>
+
+    </label>
+
+    <input
+      type="file"
+      id="videoFile"
+      accept="video/*"
+      onchange="showFileName()"
+    >
+
+  </div>
+
+
+  <!-- Analyze Button -->
+  <button
+    class="analyze-btn"
+    id="analyzeBtn"
+    onclick="analyzeVideo()"
+  >
+    🤖 ဗီဒီယိုကို စစ်ဆေးမည်
+  </button>
+
+</div>
+
+
+<!-- Loading -->
+<div class="card" id="loading">
+
+  <div class="spinner"></div>
+
+  <p class="loading-text">
+    🤖 AI က သင့်ဗီဒီယိုကို စစ်ဆေးနေပါသည်...
+  </p>
+
+  <p class="loading-text">
+    ခဏစောင့်ပေးပါ။
+  </p>
+
+</div>
+
+
+<!-- RESULT -->
+<div class="card" id="result">
+
+  <div class="result-header">
+
+    <h2>
+      📊 စစ်ဆေးမှုရလဒ်
+    </h2>
+
+    <p>
+      ⚠️ ယခုရလဒ်သည် Demo စနစ်ဖြင့် ခန့်မှန်းတွက်ချက်ထားခြင်းသာ ဖြစ်ပါသည်။
+      နောက်ပိုင်းတွင် တကယ့် AI စစ်ဆေးမှုစနစ် ချိတ်ဆက်ပေးမည်ဖြစ်သည်။
+    </p>
+
+  </div>
+
+</div>
+
+
+<div class="footer">
+  CreatorCheck AI © 2026
+</div>
+
+  </div><script>
+
+function showFileName() {
+
+  const file =
+    document.getElementById("videoFile").files[0];
+
+  const fileName =
+    document.getElementById("fileName");
+
+  if (file) {
+
+    fileName.innerHTML =
+      "✅ ရွေးချယ်ထားသောဖိုင် - " + file.name;
+
+  } else {
+
+    fileName.innerHTML =
+      "ဗီဒီယိုဖိုင် ရွေးချယ်ထားခြင်းမရှိသေးပါ";
+
+  }
+
+}
+
+
+function analyzeVideo() {
+
+  const link =
+    document.getElementById("videoLink").value.trim();
+
+  const file =
+    document.getElementById("videoFile").files[0];
+
+  const result =
+    document.getElementById("result");
+
+  const loading =
+    document.getElementById("loading");
+
+  const button =
+    document.getElementById("analyzeBtn");
+
+
+  // ဗီဒီယိုထည့်ထားခြင်းရှိမရှိ စစ်ဆေးခြင်း
+
+  if (link === "" && !file) {
+
+    alert(
+      "ကျေးဇူးပြု၍ ဗီဒီယိုလင့်ခ်ထည့်ပါ သို့မဟုတ် ဗီဒီယိုဖိုင်တင်ပါ။"
+    );
+
+    return;
+
+  }
+
+
+  // ရလဒ်ဟောင်းကို ဖျောက်ခြင်း
+
+  result.style.display = "none";
+
+
+  // Loading ပြခြင်း
+
+  loading.style.display = "block";
+
+  button.disabled = true;
+
+  button.innerHTML =
+    "⏳ စစ်ဆေးနေပါသည်...";
+
+
+  // Demo အတွက် ၂ စက္ကန့်စောင့်ခြင်း
+
+  setTimeout(function() {
+
+    let monetizationScore = 60;
+
+    let copyrightScore = 50;
+
+    let originalityScore = 50;
+
+
+    let monetizationText = "";
+
+    let copyrightText = "";
+
+    let originalityText = "";
+
+
+    // Link အလိုက် စစ်ဆေးခြင်း
+
+    if (link !== "") {
+
+      if (
+        link.includes("youtube.com") ||
+        link.includes("youtu.be")
+      ) {
+
+        monetizationScore = 65;
+
+        copyrightScore = 55;
+
+        originalityScore = 50;
+
+      }
+
+      else if (
+        link.includes("tiktok.com")
+      ) {
+
+        monetizationScore = 60;
+
+        copyrightScore = 55;
+
+        originalityScore = 50;
+
+      }
+
+      else {
+
+        monetizationScore = 45;
+
+        copyrightScore = 45;
+
+        originalityScore = 40;
+
+      }
+
+    }
+
+
+    // ဗီဒီယိုဖိုင်အလိုက် စစ်ဆေးခြင်း
+
+    if (file) {
+
+      const sizeMB =
+        file.size / (1024 * 1024);
+
+
+      if (sizeMB < 20) {
+
+        originalityScore += 10;
+
+      }
+
+
+      if (
+        file.type.startsWith("video/")
+      ) {
+
+        monetizationScore += 5;
+
+      }
+
+    }
+
+
+    // Score ကို 100 ထက်မကျော်အောင် ကန့်သတ်ခြင်း
+
+    monetizationScore =
+      Math.min(monetizationScore, 100);
+
+    copyrightScore =
+      Math.min(copyrightScore, 100);
+
+    originalityScore =
+      Math.min(originalityScore, 100);
+
+
+    // Monetization ရလဒ်
+
+    if (monetizationScore >= 70) {
+
+      monetizationText =
+        "ငွေရှာနိုင်ရန် အလားအလာကောင်းပါသည်။ သို့သော် နောက်ဆုံးအတည်ပြုချက်သည် သက်ဆိုင်ရာ Platform ၏ စည်းမျဉ်းများပေါ်တွင် မူတည်ပါသည်။";
+
+    }
+
+    else if (monetizationScore >= 50) {
+
+      monetizationText =
+        "အလယ်အလတ်အန္တရာယ်ရှိပါသည်။ မူရင်းအကြောင်းအရာနှင့် ကိုယ်ပိုင် Commentary များ ပိုမိုထည့်သွင်းခြင်းက အထောက်အကူဖြစ်နိုင်ပါသည်။";
+
+    }
+
+    else {
+
+      monetizationText =
+        "အန္တရာယ်ပိုများနိုင်ပါသည်။ ကိုယ်ပိုင်တန်ဖိုးရှိသော အကြောင်းအရာများ ပိုမိုထည့်သွင်းရန် အကြံပြုပါသည်။";
+
+    }
+
+
+    // Copyright ရလဒ်
+
+    if (copyrightScore >= 70) {
+
+      copyrightText =
+        "မူပိုင်ခွင့်အန္တရာယ် ပိုမိုမြင့်မားနိုင်ပါသည်။ ဗီဒီယိုနှင့် အသုံးပြုထားသောအကြောင်းအရာများ၏ ပိုင်ဆိုင်ခွင့်နှင့် အသုံးပြုခွင့်များကို စစ်ဆေးပါ။";
+
+    }
+
+    else if (copyrightScore >= 50) {
+
+      copyrightText =
+        "မူပိုင်ခွင့်နှင့်ပတ်သက်သော စိုးရိမ်စရာအချက်အချို့ ရှိနိုင်ပါသည်။ ထပ်မံစစ်ဆေးရန် လိုအပ်ပါသည်။";
+
+    }
+
+    else {
+
+      copyrightText =
+        "ခန့်မှန်းချက်အရ မူပိုင်ခွင့်အန္တရာယ် နည်းနိုင်ပါသည်။ သို့သော် ဤစနစ်သည် တရားဝင် မူပိုင်ခွင့်စစ်ဆေးမှု မဟုတ်ပါ။";
+
+    }
+
+
+    // Originality ရလဒ်
+
+    if (originalityScore >= 70) {
+
+      originalityText =
+        "ဤ Demo စစ်ဆေးမှုအရ မူရင်းအကြောင်းအရာဖြစ်နိုင်သည့် အချက်များ ကောင်းမွန်စွာ တွေ့ရှိရပါသည်။";
+
+    }
+
+    else if (originalityScore >= 50) {
+
+      originalityText =
+        "မူရင်းအကြောင်းအရာဖြစ်နိုင်မှု အလယ်အလတ်အဆင့်ရှိပါသည်။ ကိုယ်ပိုင် Commentary၊ Analysis သို့မဟုတ် အဓိပ္ပာယ်ရှိသော ပြောင်းလဲဖန်တီးမှုများ ထည့်သွင်းရန် အကြံပြုပါသည်။";
+
+    }
+
+    else {
+
+      originalityText =
+        "မူရင်းအကြောင်းအရာဖြစ်နိုင်မှု နည်းပါးနိုင်ပါသည်။ ကိုယ်ပိုင်ဖန်တီးမှုများနှင့် မူရင်းအကြောင်းအရာများ ပိုမိုထည့်သွင်းရန် စဉ်းစားပါ။";
+
+    }
+
+
+    // Loading ဖျောက်ခြင်း
+
+    loading.style.display = "none";
+
+
+    // Result ပြခြင်း
+
+    result.style.display = "block";
+
+
+    result.innerHTML = `
+
+      <div class="result-header">
+
+        <h2>
+          📊 စစ်ဆေးမှုရလဒ်
+        </h2>
+
+        <p>
+          ⚠️ ဤရလဒ်သည် Demo စနစ်ဖြင့် ခန့်မှန်းတွက်ချက်ထားခြင်းသာ ဖြစ်ပါသည်။
+          တကယ့် AI စစ်ဆေးမှုစနစ်ကို နောက်အဆင့်တွင် ချိတ်ဆက်ပေးမည်ဖြစ်သည်။
+        </p>
+
+      </div>
+
+
+      <div class="result-box">
+
+        <h3>
+          💰 ငွေရှာနိုင်ခြေ Score
+        </h3>
+
+        <div class="score">
+          ${monetizationScore}/100
+        </div>
+
+        <p>
+          ${monetizationText}
+        </p>
+
+      </div>
+
+
+      <div class="result-box">
+
+        <h3>
+          ©️ မူပိုင်ခွင့်အန္တရာယ် Score
+        </h3>
+
+        <div class="score">
+          ${copyrightScore}/100
+        </div>
+
+        <p>
+          ${copyrightText}
+        </p>
+
+      </div>
+
+
+      <div class="result-box">
+
+        <h3>
+          🔄 မူရင်းအကြောင်းအရာ Score
+        </h3>
+
+        <div class="score">
+          ${originalityScore}/100
+        </div>
+
+        <p>
+          ${originalityText}
+        </p>
+
+      </div>
+
+
+      <div class="result-box">
+
+        <h3>
+          💡 အကြံပြုချက်များ
+        </h3>
+
+        <p>
+          ✅ ကိုယ်ပိုင် Voice-over သို့မဟုတ် Commentary ထည့်ပါ။
+        </p>
+
+        <p>
+          ✅ အဓိပ္ပာယ်ရှိသော Analysis သို့မဟုတ် ပညာပေးအကြောင်းအရာ ထည့်ပါ။
+        </p>
+
+        <p>
+          ✅ ကိုယ်ပိုင် Editing နှင့် Storytelling ပြုလုပ်ပါ။
+        </p>
+
+        <p>
+          ⚠️ အခြားသူများ၏ ဗီဒီယိုများကို အဓိကအားထား၍ ပြန်လည်အသုံးပြုခြင်းကို ရှောင်ကြဉ်ပါ။
+        </p>
+
+      </div>
+
+
+      <div class="result-box notice">
+
+        <h3>
+          ⚠️ အရေးကြီးသော သတိပေးချက်
+        </h3>
+
+        <p>
+          ယခုရလဒ်သည် Demo ခန့်မှန်းချက်သာ ဖြစ်ပါသည်။
+          Monetization အတည်ပြုချက်၊ မူပိုင်ခွင့်ကင်းရှင်းမှု
+          သို့မဟုတ် Platform ၏ စည်းမျဉ်းနှင့် ကိုက်ညီမှုကို
+          အာမခံပေးနိုင်ခြင်း မရှိပါ။
+          တကယ့် AI Video Analysis စနစ်ကို နောက်အဆင့်တွင်
+          ချိတ်ဆက်ပေးမည်ဖြစ်သည်။
+        </p>
+
+      </div>
+
+    `;
+
+
+    // Button ကို ပြန်ဖွင့်ခြင်း
+
+    button.disabled = false;
+
+    button.innerHTML =
+      "🤖 ဗီဒီယိုကို စစ်ဆေးမည်";
+
+
+    // Result နေရာသို့ အလိုအလျောက်ရွှေ့ခြင်း
+
+    setTimeout(function() {
+
+      result.scrollIntoView({
+        behavior: "smooth"
+      });
+
+    }, 200);
+
+
+  }, 2000);
+
+}
+
+</script></body>
+</html>
