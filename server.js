@@ -13,14 +13,17 @@ const server = http.createServer((req, res) => {
     "*"
   );
 
-  // OPTIONS
+  // Preflight
   if (req.method === "OPTIONS") {
     res.writeHead(204);
     res.end();
     return;
   }
 
-  // HOME
+  // =========================
+  // HOME / HEALTH CHECK
+  // =========================
+
   if (req.method === "GET" && req.url === "/") {
 
     res.writeHead(200, {
@@ -36,7 +39,10 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // ANALYZE
+  // =========================
+  // ANALYZE API
+  // =========================
+
   if (req.method === "POST" && req.url === "/analyze") {
 
     let body = "";
@@ -49,6 +55,7 @@ const server = http.createServer((req, res) => {
 
       console.log("Analyze request received");
 
+      // Platform စစ်ခြင်း
       let platform = "Unknown";
 
       if (
@@ -68,89 +75,70 @@ const server = http.createServer((req, res) => {
         platform = "Uploaded Video";
       }
 
-      let result = {
-        success: true,
+      // Default Scores
+      let monetizationScore = 60;
+      let copyrightScore = 50;
+      let originalityScore = 50;
 
-        platform: platform,
-
-        monetization:
-          "အလယ်အလတ်အန္တရာယ်ရှိနိုင်ပါသည်။ မူရင်းအကြောင်းအရာနှင့် ကိုယ်ပိုင် Commentary ပိုမိုထည့်သွင်းရန် အကြံပြုပါသည်။",
-
-        copyright:
-          "မူပိုင်ခွင့်နှင့်ပတ်သက်သော စိုးရိမ်စရာအချက်အချို့ ရှိနိုင်ပါသည်။ အသုံးပြုခွင့်နှင့် ပိုင်ဆိုင်ခွင့်များကို ထပ်မံစစ်ဆေးပါ။",
-
-        reusedContent:
-          "Reused Content ဖြစ်နိုင်ခြေကို တိတိကျကျစစ်ဆေးရန် Video Content ကို အမှန်တကယ်ခွဲခြမ်းစိတ်ဖြာရန် လိုအပ်ပါသည်။",
-
-        recommendation:
-          "ကိုယ်ပိုင် Voice-over၊ Commentary၊ Analysis၊ Editing နှင့် Storytelling များ ထည့်သွင်းပြီး မူရင်းတန်ဖိုးရှိသော Content အဖြစ် ဖန်တီးရန် အကြံပြုပါသည်။",
-
-        notice:
-          "ဤရလဒ်သည် Demo AI Risk Assessment ဖြစ်ပါသည်။ Monetization အတည်ပြုချက် သို့မဟုတ် Copyright ကင်းရှင်းမှုကို အာမခံပေးခြင်း မရှိပါ။"
-      };
-
-      // YouTube
+      // YouTube Score
       if (platform === "YouTube") {
-
-        result.monetization =
-          "YouTube Monetization အတွက် မူရင်းတန်ဖိုးရှိသော Content၊ ကိုယ်ပိုင် Commentary နှင့် အဓိပ္ပာယ်ရှိသော ပြောင်းလဲဖန်တီးမှုများ ထည့်သွင်းထားရန် အရေးကြီးပါသည်။";
-
-        result.copyright =
-          "YouTube Video ဖြစ်သောကြောင့် မူရင်းဖန်တီးသူ၏ Video၊ Music၊ Image သို့မဟုတ် Clip များကို အသုံးပြုထားပါက Copyright Risk ရှိနိုင်ပါသည်။";
-
-        result.reusedContent =
-          "အခြားသူ၏ YouTube Video ကို အဓိကထားပြီး ပြန်လည်အသုံးပြုထားပါက Reused Content Risk ရှိနိုင်ပါသည်။";
-
-        result.recommendation =
-          "ကိုယ်ပိုင် Voice-over၊ Commentary၊ Analysis နှင့် Storytelling ထည့်ပါ။ Video ကို ရိုးရိုးပြန်တင်ခြင်းထက် အဓိပ္ပာယ်ရှိသော ပြောင်းလဲဖန်တီးမှု ပြုလုပ်ပါ။";
+        monetizationScore = 65;
+        copyrightScore = 55;
+        originalityScore = 50;
       }
 
-      // TikTok
+      // TikTok Score
       if (platform === "TikTok") {
-
-        result.monetization =
-          "TikTok Monetization အတွက် မူရင်းဖန်တီးမှုနှင့် ကိုယ်ပိုင်တန်ဖိုးရှိသော Content ဖြစ်ရန် အရေးကြီးပါသည်။";
-
-        result.copyright =
-          "TikTok Video တွင် အသုံးပြုထားသော Music၊ Video Clip၊ Image နှင့် Third-party Content များအပေါ် မူပိုင်ခွင့်အန္တရာယ် ရှိနိုင်ပါသည်။";
-
-        result.reusedContent =
-          "အခြားသူ၏ TikTok Video ကို Download ပြုလုပ်ပြီး ပြန်လည်တင်ထားပါက Reused Content Risk ရှိနိုင်ပါသည်။";
-
-        result.recommendation =
-          "ကိုယ်ပိုင် Video၊ Voice-over၊ Commentary နှင့် Storytelling ထည့်သွင်းပြီး မူရင်းတန်ဖိုးရှိသော Content အဖြစ် ဖန်တီးပါ။";
+        monetizationScore = 60;
+        copyrightScore = 55;
+        originalityScore = 50;
       }
 
-      res.writeHead(200, {
-        "Content-Type": "application/json; charset=utf-8"
-      });
+      // Uploaded Video Score
+      if (platform === "Uploaded Video") {
+        monetizationScore = 70;
+        copyrightScore = 45;
+        originalityScore = 60;
+      }
 
-      res.end(JSON.stringify(result));
+      // =========================
+      // Analysis Text
+      // =========================
 
-    });
+      let monetization = "";
 
-    return;
-  }
+      if (monetizationScore >= 70) {
 
-  // 404
-  res.writeHead(404, {
-    "Content-Type": "application/json; charset=utf-8"
-  });
+        monetization =
+          "ငွေရှာနိုင်ရန် အလားအလာကောင်းနိုင်ပါသည်။ သို့သော် မူရင်းအကြောင်းအရာ၊ ကိုယ်ပိုင် Commentary နှင့် တန်ဖိုးရှိသော ပြောင်းလဲဖန်တီးမှုများ ရှိရန်လိုအပ်ပါသည်။";
 
-  res.end(JSON.stringify({
-    success: false,
-    message: "API လမ်းကြောင်း မတွေ့ပါ။"
-  }));
+      }
 
-});
+      else if (monetizationScore >= 50) {
 
-// Railway PORT
-const PORT = process.env.PORT || 3000;
+        monetization =
+          "အလယ်အလတ်အန္တရာယ်ရှိနိုင်ပါသည်။ မူရင်းအကြောင်းအရာနှင့် ကိုယ်ပိုင် Commentary ပိုမိုထည့်သွင်းရန် အကြံပြုပါသည်။";
 
-server.listen(PORT, "0.0.0.0", () => {
+      }
 
-  console.log(
-    "CreatorCheck AI Backend is running on port " + PORT
-  );
+      else {
 
-});
+        monetization =
+          "ငွေရှာနိုင်ရန် အန္တရာယ်ပိုများနိုင်ပါသည်။ ကိုယ်ပိုင်တန်ဖိုးရှိသော Content နှင့် မူရင်းဖန်တီးမှုများ ပိုမိုထည့်သွင်းရန် အကြံပြုပါသည်။";
+
+      }
+
+      // Copyright
+      let copyright = "";
+
+      if (copyrightScore >= 70) {
+
+        copyright =
+          "Copyright Risk မြင့်နိုင်ပါသည်။ Video၊ Music၊ Image နှင့် Clip များ၏ အသုံးပြုခွင့်ကို စစ်ဆေးပါ။";
+
+      }
+
+      else if (copyrightScore >= 50) {
+
+        copyright =
+          "မူပိုင်ခွင့်နှင့်ပတ်သက်သော စိုးရိမ်စရာအချက်အချို့ ရှိနိုင်ပါသည်။
