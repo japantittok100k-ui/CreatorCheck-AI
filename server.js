@@ -107,8 +107,40 @@ Return JSON only:
   return;
 }
 
-const text =
+let aiText =
   data.candidates[0].content.parts[0].text;
+
+
+// JSON အဖြစ် ပြောင်းကြည့်မယ်
+let result;
+
+try {
+  result = JSON.parse(
+    aiText.replace(/```json/g, "")
+          .replace(/```/g, "")
+          .trim()
+  );
+} catch (e) {
+
+  result = {
+    monetization: aiText,
+    copyright: "Gemini မှ ပြန်လာသော Analysis ကို ဖတ်ရန် လိုအပ်ပါသည်။",
+    reusedContent: "AI Analysis ပြီးပါပြီ။",
+    recommendation: "ကိုယ်ပိုင် Voice-over နှင့် Original Editing ထည့်ပါ။"
+  };
+
+}
+
+
+res.writeHead(200,{
+  "Content-Type":"application/json; charset=utf-8"
+});
+
+
+res.end(JSON.stringify({
+  success:true,
+  ...result
+}));
 
 
         res.writeHead(200,{
