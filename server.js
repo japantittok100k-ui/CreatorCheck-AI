@@ -1,11 +1,8 @@
 const http = require("http");
-const OpenAI = require("openai");
 
 const PORT = process.env.PORT || 3000;
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 const server = http.createServer((req, res) => {
 
@@ -28,7 +25,7 @@ const server = http.createServer((req, res) => {
 
     res.end(JSON.stringify({
       success: true,
-      message: "CreatorCheck AI Backend Online"
+      message: "CreatorCheck AI Gemini Backend Online"
     }));
 
     return;
@@ -46,86 +43,82 @@ const server = http.createServer((req, res) => {
 
     req.on("end", async () => {
 
-      let videoLink = "";
-
       try {
 
         const params = new URLSearchParams(body);
-        videoLink = params.get("videoLink") || "";
+        const videoLink = params.get("videoLink") || "";
 
-        const ai = await client.chat.completions.create({
 
-          model: "gpt-4o-mini",
+        const prompt = `
+You are CreatorCheck AI.
 
-          messages: [
-            {
-              role: "system",
-              content:
-              "You are CreatorCheck AI. Analyze videos for monetization risk, copyright risk and reused content risk."
+Analyze this video link:
+${videoLink}
+
+Return JSON only:
+
+{
+ "monetization":"",
+ "copyright":"",
+ "reusedContent":"",
+ "recommendation":""
+}
+`;
+
+
+        const response = await fetch(
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY,
+          {
+            method: "POST",
+            headers:{
+              "Content-Type":"application/json"
             },
-
-            {
-              role: "user",
-              content:
-              `Analyze this video link:
-              ${videoLink}
-
-              Return JSON with:
-              monetization,
-              copyright,
-              reusedContent,
-              recommendation`
-            }
-          ],
-
-          response_format: {
-            type: "json_object"
+            body: JSON.stringify({
+              contents:[
+                {
+                  parts:[
+                    {
+                      text: prompt
+                    }
+                  ]
+                }
+              ]
+            })
           }
-
-        });
-
-
-        const result = JSON.parse(
-          ai.choices[0].message.content
         );
 
 
-        res.writeHead(200, {
-          "Content-Type":
-          "application/json; charset=utf-8"
+        const data = await response.json();
+
+
+        const text =
+          data.candidates[0].content.parts[0].text;
+
+
+        res.writeHead(200,{
+          "Content-Type":"application/json; charset=utf-8"
         });
 
 
-        res.end(JSON.stringify({
-          success: true,
-          ...result
-        }));
+        res.end(text);
 
 
-      } catch(error) {
+      } catch(error){
 
         console.log(error);
 
-
-        res.writeHead(500, {
-          "Content-Type":
-          "application/json; charset=utf-8"
+        res.writeHead(500,{
+          "Content-Type":"application/json; charset=utf-8"
         });
 
-
         res.end(JSON.stringify({
-
           success:false,
-
-          error:
-          "AI Analysis Error"
-
+          error:"Gemini AI Error"
         }));
 
       }
 
     });
-
 
     return;
 
@@ -141,7 +134,7 @@ const server = http.createServer((req, res) => {
 server.listen(PORT,"0.0.0.0",()=>{
 
  console.log(
- "CreatorCheck AI Backend running on "+PORT
+ "CreatorCheck AI Gemini Backend running on " + PORT
  );
 
 });
