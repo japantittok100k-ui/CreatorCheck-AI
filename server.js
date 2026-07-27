@@ -138,8 +138,11 @@ res.writeHead(200,{
 
 
 res.end(JSON.stringify({
-  success:true,
-  ...result
+  success: true,
+  monetization: result.monetization || "AI မရသေးပါ",
+  copyright: result.copyright || "AI မရသေးပါ",
+  reusedContent: result.reusedContent || "AI မရသေးပါ",
+  recommendation: result.recommendation || "Commentary ထည့်ပါ"
 }));
 
 
