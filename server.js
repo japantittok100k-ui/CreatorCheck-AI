@@ -146,9 +146,9 @@ res.end(JSON.stringify({
 }));
 
 
-        res.writeHead(200,{
-          "Content-Type":"application/json; charset=utf-8"
-        });
+        
+  
+      
 
 
         res.end(text);
