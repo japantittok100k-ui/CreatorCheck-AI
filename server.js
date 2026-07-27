@@ -91,8 +91,24 @@ Return JSON only:
         const data = await response.json();
 
 
-        const text =
-          data.candidates[0].content.parts[0].text;
+        if (!data.candidates) {
+  console.log(data);
+
+  res.writeHead(200,{
+    "Content-Type":"application/json; charset=utf-8"
+  });
+
+  res.end(JSON.stringify({
+    success:false,
+    error:"Gemini response မရပါ",
+    details:data
+  }));
+
+  return;
+}
+
+const text =
+  data.candidates[0].content.parts[0].text;
 
 
         res.writeHead(200,{
